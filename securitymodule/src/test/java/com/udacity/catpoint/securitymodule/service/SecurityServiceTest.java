@@ -3,20 +3,14 @@ package com.udacity.catpoint.securitymodule.service;
 import com.udacity.catpoint.imagemodule.service.ImageService;
 import com.udacity.catpoint.securitymodule.TestUtils;
 import com.udacity.catpoint.securitymodule.data.*;
-import com.udacity.catpoint.securitymodule.service.SecurityService;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.awt.image.BufferedImage;
-import java.lang.reflect.Executable;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -70,10 +64,10 @@ class SecurityServiceTest {
     @Test
     @DisplayName("When Alarm: pending, Sensor: inActive, then set system Status: NO_ALARM")
     void pendingAlarm_inactiveSensor_setStatusNoAlarm() {
-        sensor.setActive(false);
+        sensor.setActive(true);
         when(securityService.getAlarmStatus()).thenReturn(AlarmStatus.PENDING_ALARM);
         securityService.changeSensorActivationStatus(sensor, false);
-        verify(securityRepository, times(1)).setAlarmStatus(AlarmStatus.NO_ALARM);
+        verify(securityRepository).setAlarmStatus(AlarmStatus.NO_ALARM);
     }
 
     // Test 4: If alarm is active, change in sensor state should not affect the alarm state.
@@ -165,7 +159,6 @@ class SecurityServiceTest {
 
     /*  ---------------  Additional Test Cases  --------------------- */
 
-    // Test :
     @ParameterizedTest
     @DisplayName("When System: disarmed, sensor: activated: then Arming State is Unchanged")
     @EnumSource(value = AlarmStatus.class, names = {"NO_ALARM", "PENDING_ALARM"})
@@ -181,22 +174,10 @@ class SecurityServiceTest {
     @DisplayName("When Sensor: deactivated, prevState: active, then System moves from PendingAlarm to NoAlarm")
     void deactivatedSensor_prevActive_pendingAlarm_putSystemToNoAlarm() {
         sensor.setActive(true);
-        Set<Sensor> sensors = TestUtils.getSensors(4, false);
-        when(securityRepository.getSensors()).thenReturn(sensors);
         when(securityRepository.getAlarmStatus()).thenReturn(AlarmStatus.PENDING_ALARM);
         securityService.changeSensorActivationStatus(sensor,  false);
 
         verify(securityRepository, times(1)).setAlarmStatus(AlarmStatus.NO_ALARM);
-    }
-
-    @Test
-    @DisplayName("When Sensor: deactivated, prevState: active, then System status changes from Alarm to PendingAlarm")
-    void deactivatedSensor_prevActive_Alarm_putSystemToNoAlarm() {
-        sensor.setActive(true);
-        when(securityRepository.getAlarmStatus()).thenReturn(AlarmStatus.ALARM);
-        securityService.changeSensorActivationStatus(sensor,  false);
-
-        verify(securityRepository, times(1)).setAlarmStatus(AlarmStatus.PENDING_ALARM);
     }
 
     // Test 10: If the system is armed, reset all sensors to inactive.
@@ -210,4 +191,16 @@ class SecurityServiceTest {
         securityService.setArmingStatus(ArmingStatus.ARMED_HOME);
         securityService.getSensors().forEach(sensor -> assertFalse(sensor.getActive()));
     }
+
+    @Test
+    @DisplayName("When System: Armed; then reset All Sensors")
+    void disarmedSystem_sensorActivated_doNothing() {
+        sensor.setActive(true);
+        when(securityRepository.getAlarmStatus()).thenReturn(AlarmStatus.PENDING_ALARM);
+        when(securityRepository.getArmingStatus()).thenReturn(ArmingStatus.DISARMED);
+        securityService.changeSensorActivationStatus(sensor, false);
+        verify(securityRepository, never()).setAlarmStatus(any(AlarmStatus.class));
+    }
+
+
 }

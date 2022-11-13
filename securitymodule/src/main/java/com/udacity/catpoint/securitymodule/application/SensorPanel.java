@@ -31,6 +31,7 @@ public class SensorPanel extends JPanel implements StatusListener {
         super();
         setLayout(new MigLayout());
         this.securityService = securityService;
+        this.securityService.addStatusListener(this);
 
         panelLabel.setFont(StyleService.HEADING_FONT);
         addNewSensorButton.addActionListener(e ->

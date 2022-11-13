@@ -79,6 +79,7 @@
           <configuration>
             <argLine>
               --add-opens com.udacity.catpoint.securitymodule/com.udacity.catpoint.securitymodule.service=ALL-UNNAMED
+              --add-opens com.udacity.catpoint.securitymodule/com.udacity.catpoint.securitymodule.data=ALL-UNNAMED
             </argLine>
           </configuration>
         </plugin>
